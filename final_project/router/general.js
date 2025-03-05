@@ -16,17 +16,31 @@ public_users.get('/',function (req, res) {
   res.send(JSON.stringify({ books }, null, 4))
 });
 
+// reuse   function to get book by different criteria
+
+ function findBookByParam(param) {
+  for (let key in books) {
+    let book = books[key];
+    if(book.isbn === param || book.author === param || book.title === param) {
+      return book;
+    } else {
+      return `No book found`
+    }
+  }
+}
+
 // Get book details based on ISBN
 public_users.get('/isbn/:isbn',function (req, res) {
   const isbn = req.params.isbn;
-  let filtered_books = books.filter((book) => book.isbn === isbn);
-  res.send(filtered_books)
+  const bookFoundWitnIsbn = findBookByParam(isbn)
+  res.send(bookFoundWitnIsbn)
  });
   
 // Get book details based on author
 public_users.get('/author/:author',function (req, res) {
-  //Write your code here
-  return res.status(300).json({message: "Yet to be implemented"});
+  const author = req.params.author;
+  const bookFindByAuthor = findBookByParam(author)
+  res.send(bookFindByAuthor)
 });
 
 // Get all books based on title
