@@ -31,7 +31,7 @@ public_users.get('/',function (req, res) {
 
 // reuse   function to get book by different criteria
 
- function findBookByParam(param) {
+ const  findBookByParam = (param) => {
   for (let key in books) {
     let book = books[key];
     if(book.isbn === param || book.author === param || book.title === param) {
@@ -75,3 +75,4 @@ public_users.get('/review/:isbn',function (req, res) {
 });
 
 module.exports.general = public_users;
+module.exports.findBookByParam = findBookByParam;
