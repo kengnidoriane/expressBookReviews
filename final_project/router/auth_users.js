@@ -53,55 +53,62 @@ regd_users.put("/auth/review/:isbn", (req, res) => {
   const review = req.body.review;
   const username = req.session.authorization?.username;
 
+  // Vérifie si l'utilisateur est connecté
   if (!username) {
-    return res.status(403).json({ message: "User need to logged in" });
+      return res.status(403).json({ message: "User needs to be logged in" });
   }
 
+  // Vérifie si la critique est fournie
   if (!review) {
-    return res.status(400).json({ message: "Review is required" });
+      return res.status(400).json({ message: "Review is required" });
   }
 
-  if(typeof findBookByParam === "object") {
-    
+  // Trouve le livre par ISBN
+  const bookFindByIsbn = findBookByParam(isbn);
+
+  // Vérifie si le livre existe
+  if (!bookFindByIsbn) {
+      return res.status(404).json({ message: 'Book not found' });
+  }
+
+  // Si l'utilisateur a déjà posté une critique, mettez-la à jour
+  if (bookFindByIsbn.reviews.hasOwnProperty(username)) {
+      bookFindByIsbn.reviews[username] = review;
+      return res.status(200).json({ message: "Review updated successfully" });
   } else {
-    res.status(404).json({ message: 'Book not found'})
+      // Sinon, ajoute une nouvelle critique
+      bookFindByIsbn.reviews[username] = review;
+      return res.status(200).json({ message: "Review added successfully" });
   }
-
 });
 
-regd_users.put("/auth/review/:isbn", (req, res) => {
-  const isbn = req.params.isbn; // Récupère l'ISBN du livre
-  const review = req.body.review; // Récupère la critique depuis le corps de la requête
-  const username = req.session.authorization?.username; // Récupère le nom d'utilisateur depuis la session
+regd_users.delete("/auth/review/:isbn", (req, res) => {
+  const isbn = req.params.isbn;
+
+  const username = req.session.authorization?.username;
+  const bookFindByIsbn = findBookByParam(isbn)
 
   if (!username) {
-    return res.status(403).json({ message: "User not logged in" });
+    return res.status(401).json({ message: "The user need to register" });
   }
 
-  if (!review) {
-    return res.status(400).json({ message: "Review is required" });
+  if (!bookFindByIsbn) {
+    return res.status(404).json({ message: "Book not found" });
   }
 
-  // Supposons que `books` est un objet global qui stocke les livres et leurs critiques
-  if (!books[isbn]) {
-    books[isbn] = { reviews: [] }; // Initialise l'objet livre s'il n'existe pas
+  // Vérifier si l'utilisateur a déjà posté une critique pour ce livre
+  if (!bookFindByIsbn.reviews || !bookFindByIsbn.reviews[username]) {
+    return res.status(404).json({ message: "No review found" });
   }
 
-  // Recherche si l'utilisateur a déjà posté une critique pour ce livre
-  const userReviewIndex = books[isbn].reviews.findIndex(
-    (r) => r.username === username
-  );
+  // Supprimer la critique de l'utilisateur
+  delete books[isbn].reviews[username];
 
-  if (userReviewIndex !== -1) {
-    // Met à jour la critique existante
-    books[isbn].reviews[userReviewIndex].review = review;
-    return res.status(200).json({ message: "Review updated successfully" });
-  } else {
-    // Ajoute une nouvelle critique
-    books[isbn].reviews.push({ username, review });
-    return res.status(200).json({ message: "Review added successfully" });
-  }
+  // Répondre avec un message de succès
+  return res.status(200).json({ message: "Review delete successfully" });
 });
+
+
 
 
 module.exports.authenticated = regd_users;
