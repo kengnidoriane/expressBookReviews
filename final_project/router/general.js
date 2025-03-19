@@ -1,8 +1,8 @@
 const express = require('express');
 let books = require("./booksdb.js");
-let isValid = require("./auth_users.js").isValid;
 let users = require("./auth_users.js").users;
 const public_users = express.Router();
+console.log(users);
 
 
 public_users.post("/register", (req,res) => {
@@ -10,22 +10,36 @@ public_users.post("/register", (req,res) => {
   if(!username || !password) {
     return res.status(400).send('username and password are required')
   }
+
+  if (username < 3) {
+    return res.status(400).json({error: 'Username must be at least 3 caracters'})
+  }
+
+  if (password < 6) {
+    return res.status(400).json({error: 'Password must be at least 6 caracters'})
+  }
   const userExists = users.find(user => user.username === username);
 
   if(userExists) {
-    return res.status(400).send('This username already exists')
+    return res.status(400).json({error: 'This username already exists'});
   }
 
-  users.push({
-    username: req.body.username,
-    password: req.body.password,
-  });
-  return res.status(201).send("User " + req.body.username + " registered successfully." )
+  try {
+    users.push({
+      username: req.body.username,
+      password: req.body.password,
+    });
+    return res.status(201).json({ message: `User ${username} registered successfully` });
+  }  catch (error) {
+    console.error(error);
+    return res.status(500).json({ error: 'Internal Server Error' });
+  }
 });
 
 // Get the book list available in the shop
 public_users.get('/',function (req, res) {
-
+  console.log('users', users);
+  
   res.send(JSON.stringify({ books }, null, 3))
 });
 
