@@ -1,6 +1,6 @@
 const express = require('express');
 let books = require("./booksdb.js");
-// let isValid = require("./auth_users.js").isValid;
+let isValid = require("./auth_users.js").isValid;
 let users = require("./auth_users.js").users;
 const public_users = express.Router();
 
@@ -10,23 +10,23 @@ public_users.post("/register", (req,res) => {
   if(!username || !password) {
     return res.status(400).send('username and password are required')
   }
-
-  const userExists = users.some(user => user.username === username);
+  const userExists = users.find(user => user.username === username);
 
   if(userExists) {
     return res.status(400).send('This username already exists')
   }
 
   users.push({
-    'username': req.body.username,
-    'password': req.body.password,
+    username: req.body.username,
+    password: req.body.password,
   });
   return res.status(201).send("User " + req.body.username + " registered successfully." )
 });
 
 // Get the book list available in the shop
 public_users.get('/',function (req, res) {
-  res.send(JSON.stringify({ books }, null, 4))
+
+  res.send(JSON.stringify({ books }, null, 3))
 });
 
 // reuse   function to get book by different criteria
@@ -67,10 +67,18 @@ public_users.get('/review/:isbn',function (req, res) {
   const isbn = req.params.isbn;
   const findBookByIsbn = findBookByParam(isbn);
 
-  if(typeof findBookByIsbn === 'object'){
-    res.send(findBookByIsbn.review);
+  if(findBookByIsbn && typeof findBookByIsbn === 'object'){
+
+    if(Object.keys(findBookByIsbn.reviews).length === 0) {
+      console.log('No review available');
+      res.send('No review available')
+    }
+    else {
+      res.send(JSON.stringify(findBookByIsbn.reviews, null, 3));
+    }
+
   } else{
-    res.send('book review not found')
+    res.send('book not found please check and try again')
   }
 });
 

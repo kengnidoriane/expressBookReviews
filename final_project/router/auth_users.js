@@ -5,11 +5,7 @@ let books = require("./booksdb.js");
 const findBookByParam = require("./general.js").findBookByParam;
 const regd_users = express.Router();
 
-let users = [{
-  "username": "manon",
-  "password": "manon#"
-}
-];
+let users = [];
 
 const isValid = (username)=>{ //returns boolean
 //write code to check is the username is valid
